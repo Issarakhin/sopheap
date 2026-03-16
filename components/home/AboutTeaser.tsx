@@ -22,7 +22,7 @@ export function AboutTeaser() {
           className="relative"
         >
           <div className="relative aspect-[4/5] rounded-2xl overflow-hidden max-w-sm">
-            <Image src="/images/sopheap.jpg" alt="HIN Sopheap" fill className="object-cover" />
+            <Image src="/images/photo_2026-03-16_14-49-43.jpg" alt="HIN Sopheap" fill className="object-cover" />
             <div className="absolute inset-0 bg-gradient-to-tr from-brand-gold/20 to-transparent" />
           </div>
           <div className="absolute -bottom-6 -right-6 bg-brand-card border border-brand-gold/30 rounded-xl px-6 py-4 shadow-xl">
