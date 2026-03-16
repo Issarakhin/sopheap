@@ -1,20 +1,35 @@
 import {
   collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc,
-  query, where, orderBy, limit, increment, serverTimestamp,
-  onSnapshot, Timestamp, setDoc,
+  query, orderBy, limit, increment, serverTimestamp,
+  setDoc, where,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import type { Post, UserProfile, Inquiry, ChatSession, Subscriber } from '@/types';
+import type { Post, UserProfile, Inquiry, ChatSession } from '@/types';
 
 // ─── POSTS ────────────────────────────────────────────────────────────────────
 
-export async function getPosts(opts?: { category?: string; limit?: number; featured?: boolean }) {
-  let q = query(collection(db, 'posts'), where('published', '==', true), orderBy('publishedAt', 'desc'));
-  if (opts?.category) q = query(q, where('category', '==', opts.category));
-  if (opts?.featured !== undefined) q = query(q, where('featured', '==', opts.featured));
-  if (opts?.limit) q = query(q, limit(opts.limit));
+export async function getPosts(opts?: {
+  category?: string;
+  limit?: number;
+  featured?: boolean;
+}) {
+  // Simple single-field query — no compound index needed
+  const q = query(
+    collection(db, 'posts'),
+    orderBy('publishedAt', 'desc'),
+    limit(100)
+  );
+
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Post));
+  let posts = snap.docs.map(d => ({ id: d.id, ...d.data() } as Post));
+
+  // Filter client-side to avoid compound index requirement
+  posts = posts.filter(p => p.published === true);
+  if (opts?.category) posts = posts.filter(p => p.category === opts.category);
+  if (opts?.featured !== undefined) posts = posts.filter(p => p.featured === opts.featured);
+  if (opts?.limit) posts = posts.slice(0, opts.limit);
+
+  return posts;
 }
 
 export async function getPostBySlug(slug: string): Promise<Post | null> {
@@ -41,7 +56,10 @@ export async function createPost(data: Omit<Post, 'id'>): Promise<string> {
 }
 
 export async function updatePost(id: string, data: Partial<Post>) {
-  await updateDoc(doc(db, 'posts', id), { ...data, updatedAt: serverTimestamp() });
+  await updateDoc(doc(db, 'posts', id), {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function deletePost(id: string) {
@@ -73,14 +91,20 @@ export async function createUserProfile(uid: string, data: Partial<UserProfile>)
 }
 
 export async function updateUserProfile(uid: string, data: Partial<UserProfile>) {
-  await updateDoc(doc(db, 'users', uid), { ...data, lastSeen: serverTimestamp() });
+  await updateDoc(doc(db, 'users', uid), {
+    ...data,
+    lastSeen: serverTimestamp(),
+  });
 }
 
 // ─── CHAT HISTORY ─────────────────────────────────────────────────────────────
 
 export async function saveChatSession(userId: string, session: ChatSession) {
   const ref = doc(db, 'chatHistory', userId, 'sessions', session.sessionId);
-  await setDoc(ref, { ...session, lastMessageAt: serverTimestamp() }, { merge: true });
+  await setDoc(ref, {
+    ...session,
+    lastMessageAt: serverTimestamp(),
+  }, { merge: true });
 }
 
 export async function getChatSessions(userId: string): Promise<ChatSession[]> {
@@ -95,7 +119,9 @@ export async function getChatSessions(userId: string): Promise<ChatSession[]> {
 
 // ─── INQUIRIES ────────────────────────────────────────────────────────────────
 
-export async function saveInquiry(data: Omit<Inquiry, 'id' | 'submittedAt' | 'status'>) {
+export async function saveInquiry(
+  data: Omit<Inquiry, 'id' | 'submittedAt' | 'status'>
+) {
   return addDoc(collection(db, 'inquiries'), {
     ...data,
     status: 'new',
@@ -104,14 +130,23 @@ export async function saveInquiry(data: Omit<Inquiry, 'id' | 'submittedAt' | 'st
 }
 
 export async function getInquiries(): Promise<(Inquiry & { id: string })[]> {
-  const q = query(collection(db, 'inquiries'), orderBy('submittedAt', 'desc'));
+  const q = query(
+    collection(db, 'inquiries'),
+    orderBy('submittedAt', 'desc')
+  );
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() } as Inquiry & { id: string }));
+  return snap.docs.map(d => ({
+    id: d.id,
+    ...d.data(),
+  } as Inquiry & { id: string }));
 }
 
 // ─── SUBSCRIBERS ──────────────────────────────────────────────────────────────
 
-export async function addSubscriber(email: string, language: 'en' | 'kh' = 'en') {
+export async function addSubscriber(
+  email: string,
+  language: 'en' | 'kh' = 'en'
+) {
   await setDoc(doc(db, 'subscribers', email), {
     email,
     language,
@@ -121,38 +156,19 @@ export async function addSubscriber(email: string, language: 'en' | 'kh' = 'en')
 
 // ─── ANALYTICS ────────────────────────────────────────────────────────────────
 
-export async function logPageView(page: string, userId: string | null, sessionId: string, articleId?: string) {
+export async function logPageView(
+  page: string,
+  userId: string | null,
+  sessionId: string,
+  articleId?: string
+) {
   await addDoc(collection(db, 'analytics', 'pageViews', 'events'), {
     page,
     userId,
-    sessionId,
     articleId: articleId || null,
+    sessionId,
     timestamp: serverTimestamp(),
   });
-}
-
-export async function getAnalyticsSummary() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const yearStart = new Date(now.getFullYear(), 0, 1);
-
-  const eventsRef = collection(db, 'analytics', 'pageViews', 'events');
-
-  const [todaySnap, weekSnap, monthSnap, yearSnap] = await Promise.all([
-    getDocs(query(eventsRef, where('timestamp', '>=', Timestamp.fromDate(todayStart)))),
-    getDocs(query(eventsRef, where('timestamp', '>=', Timestamp.fromDate(weekStart)))),
-    getDocs(query(eventsRef, where('timestamp', '>=', Timestamp.fromDate(monthStart)))),
-    getDocs(query(eventsRef, where('timestamp', '>=', Timestamp.fromDate(yearStart)))),
-  ]);
-
-  return {
-    today: todaySnap.size,
-    week: weekSnap.size,
-    month: monthSnap.size,
-    year: yearSnap.size,
-  };
 }
 
 // ─── AI RULES ─────────────────────────────────────────────────────────────────
@@ -163,7 +179,6 @@ export async function getAIRules(): Promise<string> {
 }
 
 export async function updateAIRules(systemPrompt: string, updatedBy: string) {
-  // Save version history
   const current = await getDoc(doc(db, 'aiRules', 'current'));
   if (current.exists()) {
     await addDoc(collection(db, 'aiRules', 'current', 'versions'), {
