@@ -141,7 +141,7 @@ export default function SopheaWidget() {
             {/* Avatar */}
             <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-brand-gold/30 to-brand-gold/10 border-2 border-brand-gold/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
               <img
-                src="/images/sophea-avatar.png"
+                src="/images/photo_2026-03-16_14-48-32.jpg"
                 alt="Sophea"
                 className="w-full h-full object-cover"
                 onError={(e) => {
