@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-playfair: 'Playfair Display', Georgia, serif;
+    --font-source-serif: 'Source Serif 4', Georgia, serif;
+    --font-dm-mono: 'DM Mono', monospace;
+    --font-kantumruy: 'Kantumruy Pro', sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: #0A0C10;
+    color: #F5F0E8;
+    font-family: var(--font-source-serif);
+  }
+
+  ::selection {
+    background: #C9A84C33;
+    color: #F5F0E8;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0A0C10;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #C9A84C44;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #C9A84C88;
+  }
+}
+
+@layer components {
+  .grain-overlay {
+    position: relative;
+  }
+
+  .grain-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.4;
+  }
+
+  .gold-text {
+    background: linear-gradient(135deg, #C9A84C 0%, #E8C97A 50%, #C9A84C 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gold-border {
+    border: 1px solid #C9A84C44;
+  }
+
+  .gold-border-animated {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .gold-border-animated::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, #C9A84C, transparent, #C9A84C);
+    z-index: -1;
+    animation: border-rotate 4s linear infinite;
+  }
+
+  .card-hover {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 20px 60px -10px rgba(201, 168, 76, 0.15);
+  }
+
+  .section-title {
+    font-family: var(--font-playfair);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    color: #F5F0E8;
+  }
+
+  .prose-brand {
+    font-family: var(--font-source-serif);
+    font-size: 1.125rem;
+    line-height: 1.8;
+    color: #E5E0D8;
+  }
+
+  .btn-primary {
+    @apply bg-brand-gold text-brand-bg font-semibold px-6 py-3 rounded-lg 
+           transition-all duration-200 hover:bg-brand-gold-light hover:shadow-lg 
+           hover:shadow-brand-gold/20 active:scale-95 inline-flex items-center gap-2;
+    font-family: var(--font-dm-mono);
+    letter-spacing: 0.02em;
+  }
+
+  .btn-ghost {
+    @apply border border-brand-gold/30 text-brand-cream px-6 py-3 rounded-lg 
+           transition-all duration-200 hover:border-brand-gold hover:text-brand-gold 
+           active:scale-95 inline-flex items-center gap-2;
+    font-family: var(--font-dm-mono);
+  }
+
+  .category-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium tracking-wide;
+    font-family: var(--font-dm-mono);
+  }
+
+  .input-base {
+    @apply bg-brand-card border border-brand-border text-brand-cream rounded-lg px-4 py-3 
+           w-full focus:outline-none focus:border-brand-gold/60 transition-colors 
+           placeholder:text-brand-muted;
+    font-family: var(--font-source-serif);
+  }
+}
+
+/* Particles canvas */
+#particles-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Reading progress */
+#reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #C9A84C, #E8C97A);
+  z-index: 1000;
+  transition: width 0.1s ease;
+}
+
+/* Khmer font class */
+.font-khmer {
+  font-family: var(--font-kantumruy), sans-serif;
+}
+
+/* Tiptap editor styles */
+.ProseMirror {
+  min-height: 300px;
+  outline: none;
+  font-family: var(--font-source-serif);
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #F5F0E8;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #6B7280;
+  pointer-events: none;
+  height: 0;
+}
+
+@keyframes border-rotate {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
