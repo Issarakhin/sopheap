@@ -1,11 +1,10 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { adminDb } from '@/lib/firebase-admin';
 import { DEFAULT_SYSTEM_PROMPT } from '@/lib/utils';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-// Rate limiting (simple in-memory — use Redis/Upstash for production)
 const rateLimits = new Map<string, { count: number; reset: number }>();
 
 function checkRateLimit(ip: string): boolean {
@@ -29,16 +28,18 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, userId, sessionId, lang, articles } = await req.json();
 
-    // Load system prompt from Firebase (with fallback)
+    // Load system prompt from Firebase with fallback
     let systemPrompt = DEFAULT_SYSTEM_PROMPT;
     try {
-      const rulesDoc = await adminDb.doc('aiRules/current').get();
+      const { adminDb } = await import('@/lib/firebase-admin');
+      const db = adminDb();
+      const rulesDoc = await db.doc('aiRules/current').get();
       if (rulesDoc.exists && rulesDoc.data()?.systemPrompt) {
         systemPrompt = rulesDoc.data()!.systemPrompt;
       }
     } catch {}
 
-    // Inject available articles into system prompt
+    // Inject available articles
     if (articles && articles.length > 0) {
       const articleList = articles
         .slice(0, 20)
@@ -52,24 +53,22 @@ export async function POST(req: NextRequest) {
       systemPrompt += '\n\nThe user is likely Khmer-speaking. Respond in Khmer (ភាសាខ្មែរ) unless the user writes in English.';
     }
 
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         { role: 'system', content: systemPrompt },
-        ...messages.slice(-20), // Keep last 20 messages for context
+        ...messages.slice(-20),
       ],
       temperature: 0.7,
       max_tokens: 800,
     });
 
     const content = completion.choices[0].message.content || '';
-
     return NextResponse.json({ content, sessionId });
   } catch (err: any) {
     console.error('Chat API error:', err);
-    return NextResponse.json(
-      { error: err.message || 'Internal error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
   }
 }
