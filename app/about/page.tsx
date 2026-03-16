@@ -32,7 +32,7 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="relative min-h-[60vh] flex items-end overflow-hidden">
         <div className="absolute inset-0">
-          <Image src="/images/sopheap.jpg" alt="HIN Sopheap" fill className="object-cover object-top" />
+          <Image src="/images/photo_2026-03-16_14-49-43.jpg" alt="HIN Sopheap" fill className="object-cover object-top" />
           <div className="absolute inset-0 bg-gradient-to-b from-brand-bg/30 via-brand-bg/60 to-brand-bg" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 pt-32">
