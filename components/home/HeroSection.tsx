@@ -167,7 +167,7 @@ export default function HeroSection() {
               <div className="absolute inset-0 rounded-2xl border border-brand-gold/30 rotate-3 scale-[1.02]" />
               <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/sopheap.jpg"
+                  src="/images/photo_2026-03-16_14-49-43.jpg"
                   alt="HIN Sopheap"
                   fill
                   className="object-cover object-center"
