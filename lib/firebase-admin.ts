@@ -10,5 +10,11 @@ function getApp() {
   return initializeApp({ credential: cert(cred) });
 }
 
+export function initAdmin(): App {
+  return createApp();
+}
+
+
+
 export function adminDb() { return getFirestore(getApp()); }
 export function adminAuth() { return getAuth(getApp()); }
