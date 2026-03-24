@@ -1,22 +1,48 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import type { App } from 'firebase-admin/app';
 
-function getApp() {
-  if (getApps().length > 0) return getApps()[0];
+function createApp() {
+  if (getApps().length > 0) {
+    return getApps()[0];
+  }
+
   const key = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!key) throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY missing');
-  const cred = JSON.parse(key.replace(/\\n/g, '\n'));
-  return initializeApp({ credential: cert(cred) });
-}
+  if (!key) {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY missing');
+  }
 
+  let cred;
+  try {
+    cred = JSON.parse(key);
+  } catch {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON');
+  }
+
+  if (!cred.private_key || typeof cred.private_key !== 'string') {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY missing private_key');
+  }
+
+  if (!cred.client_email || typeof cred.client_email !== 'string') {
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY missing client_email');
+  }
+
+  return initializeApp({
+    credential: cert({
+      ...cred,
+      private_key: cred.private_key.replace(/\\n/g, '\n'),
+    }),
+  });
+}
 
 export function initAdmin() {
-  return getApp();
+  return createApp();
 }
 
+export function adminDb() {
+  return getFirestore(createApp());
+}
 
-
-export function adminDb() { return getFirestore(getApp()); }
-export function adminAuth() { return getAuth(getApp()); }
+export function adminAuth() {
+  return getAuth(createApp());
+}
