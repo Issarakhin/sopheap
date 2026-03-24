@@ -11,8 +11,9 @@ function getApp() {
   return initializeApp({ credential: cert(cred) });
 }
 
-export function initAdmin(): App {
-  return createApp();
+
+export function initAdmin() {
+  return getApp();
 }
 
 
