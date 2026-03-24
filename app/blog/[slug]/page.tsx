@@ -124,7 +124,7 @@ export default function ArticlePage() {
           {/* Byline */}
           <div className="flex items-center gap-4 pb-8 border-b border-brand-border">
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-brand-gold/40 relative flex-shrink-0">
-              <Image src="/images/photo_2026-03-16_14-49-43.jpg"" alt="HIN Sopheap" fill className="object-cover" />
+              <Image src="/images/photo_2026-03-16_14-49-43.jpg" alt="HIN Sopheap" fill className="object-cover" />
             </div>
             <div>
               <p className="text-brand-cream font-semibold text-sm">HIN Sopheap</p>
