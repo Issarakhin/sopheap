@@ -1,44 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { mergeSiteContent } from '@/lib/site-content';
+
+async function getAdminDb() {
+  const { adminDb } = await import('@/lib/firebase-admin');
+  return adminDb();
+}
+
+async function getAdminAuth() {
+  const { adminAuth } = await import('@/lib/firebase-admin');
+  return adminAuth();
+}
 
 export async function GET() {
   try {
-    const snap = await adminDb().collection('siteContent').doc('main').get();
-    const stored = snap.exists ? snap.data() : null;
+    const db = await getAdminDb();
+    const snap = await db.collection('siteContent').doc('main').get();
+    const stored = snap.exists ? snap.data() ?? null : null;
     return NextResponse.json(mergeSiteContent(stored as any));
   } catch (err) {
-    console.error('site-content GET error:', err);
+    console.error('[site-content GET]', err);
     return NextResponse.json(mergeSiteContent(null));
   }
 }
 
 export async function PUT(req: NextRequest) {
   try {
-    // Verify Firebase token
-    const token = req.headers.get('Authorization')?.replace('Bearer ', '') ?? '';
-    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+    if (!token) {
+      return NextResponse.json({ error: 'No token' }, { status: 401 });
+    }
 
-    const decoded = await adminAuth().verifyIdToken(token);
+    const auth = await getAdminAuth();
+    const decoded = await auth.verifyIdToken(token);
 
-    // Check admin role in Firestore users collection (same as auth-context)
-    const userDoc = await adminDb().collection('users').doc(decoded.uid).get();
-    const role = userDoc.exists ? (userDoc.data() as any)?.role : null;
+    const db = await getAdminDb();
+    const userSnap = await db.collection('users').doc(decoded.uid).get();
+    const role = userSnap.exists ? (userSnap.data() as any)?.role : null;
+
     if (role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: 'Not admin' }, { status: 403 });
     }
 
     const body = await req.json();
+    // Remove server-managed fields
     const { updatedAt, updatedBy, ...content } = body;
 
-    await adminDb().collection('siteContent').doc('main').set(
+    await db.collection('siteContent').doc('main').set(
       { ...content, updatedAt: new Date(), updatedBy: decoded.uid },
       { merge: true }
     );
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error('site-content PUT error:', err);
-    return NextResponse.json({ error: err.message ?? 'Server error' }, { status: 500 });
+    console.error('[site-content PUT]', err);
+    return NextResponse.json({ error: String(err?.message ?? err) }, { status: 500 });
   }
 }
