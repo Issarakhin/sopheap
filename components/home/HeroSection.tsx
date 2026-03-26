@@ -1,18 +1,25 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import { useLang } from '@/lib/lang-context';
 import { cn } from '@/lib/utils';
+import { mergeSiteContent, type SiteContent } from '@/lib/site-content';
 
 export default function HeroSection() {
   const { t, lang } = useLang();
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [sc, setSc] = useState<SiteContent>(mergeSiteContent(null));
 
-  // Particle animation
+  useEffect(() => {
+    fetch('/api/site-content')
+      .then(r => r.json())
+      .then(data => setSc(mergeSiteContent(data)))
+      .catch(() => {});
+  }, []);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -92,7 +99,7 @@ export default function HeroSection() {
               transition={{ duration: 0.7, delay: 0.2 }}
             >
               <span className="inline-flex items-center gap-2 bg-brand-gold/10 border border-brand-gold/30 text-brand-gold text-xs font-mono px-4 py-1.5 rounded-full mb-6 uppercase tracking-widest">
-                AI Strategist · Trainer · Entrepreneur
+                {sc.home_hero_badge}
               </span>
             </motion.div>
 
@@ -105,11 +112,9 @@ export default function HeroSection() {
                 lang === 'kh' && 'font-khmer text-4xl md:text-5xl'
               )}
             >
-              <span className="text-brand-cream">{lang === 'kh' ? 'ការគិតពី' : 'AI Thinking'}</span>
-              <br />
-              <span className="gold-text">{lang === 'kh' ? 'AI' : 'for Cambodia\'s'}</span>
-              <br />
-              <span className="text-brand-cream">{lang === 'kh' ? 'សម្រាប់អនាគត' : 'Future'}</span>
+              <span className="text-brand-cream gold-text">
+                {lang === 'kh' ? sc.home_hero_title_kh : sc.home_hero_title}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -118,7 +123,7 @@ export default function HeroSection() {
               transition={{ duration: 0.7, delay: 0.5 }}
               className="text-brand-muted text-lg md:text-xl leading-relaxed mb-10 max-w-md"
             >
-              {t('hero.sub')}
+              {lang === 'kh' ? sc.home_hero_sub_kh : sc.home_hero_sub}
             </motion.p>
 
             <motion.div
@@ -128,10 +133,10 @@ export default function HeroSection() {
               className="flex flex-wrap gap-4"
             >
               <Link href="/blog" className="btn-primary text-base px-8 py-3.5">
-                {t('hero.cta1')} <ArrowRight size={16} />
+                {lang === 'kh' ? sc.home_hero_cta1_kh : sc.home_hero_cta1} <ArrowRight size={16} />
               </Link>
               <Link href="/services" className="btn-ghost text-base px-8 py-3.5">
-                {t('hero.cta2')}
+                {lang === 'kh' ? sc.home_hero_cta2_kh : sc.home_hero_cta2}
               </Link>
             </motion.div>
 
