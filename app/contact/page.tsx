@@ -105,7 +105,3 @@ export default function ContactPage() {
     </main>
   );
 }
-      <Footer />
-    </main>
-  );
-}
