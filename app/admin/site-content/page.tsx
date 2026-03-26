@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import {
   DEFAULT_CONTENT, mergeSiteContent,
-  type SiteContent, type ServiceItem, type ServiceTeaserItem,
+  type SiteContent, type ServiceItem, type ServiceTeaser,
   type Testimonial, type Credential, type Company,
 } from '@/lib/site-content';
 import {
