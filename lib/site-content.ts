@@ -90,6 +90,28 @@ export interface SiteContent {
   home_subscribe_cta_kh: string;
   home_subscribe_placeholder: string;
   home_subscribe_placeholder_kh: string;
+
+   // ── ABOUT PAGE ─────────────────────────────────────────────────────────────
+  about_hero_eyebrow:   string;
+  about_hero_heading:   string;
+  about_hero_highlight: string;
+  about_bio:            string[];
+  about_credentials:    Credential[];
+  about_companies:      Company[];
+ 
+  // ── CONTACT PAGE ───────────────────────────────────────────────────────────
+  contact_eyebrow:   string;
+  contact_heading:   string;
+  contact_subtext:   string;
+  contact_telegram:  string;
+  contact_email:     string;
+  contact_location:  string;
+  contact_form_heading: string;
+ 
+  // ── FOOTER ─────────────────────────────────────────────────────────────────
+  footer_tagline: string;
+  footer_telegram_url: string;
+  footer_email: string;
 }
 
 // ─── DEFAULTS ─────────────────────────────────────────────────────────────────
@@ -201,6 +223,20 @@ export const DEFAULT_CONTENT: SiteContent = {
   home_subscribe_cta_kh: 'ជាវដោយឥតគិតថ្លៃ',
   home_subscribe_placeholder: 'Your email address',
   home_subscribe_placeholder_kh: 'អាសយដ្ឋានអ៊ីមែលរបស់អ្នក',
+
+    // Contact page
+  contact_eyebrow:      'Contact',
+  contact_heading:      "Let's Talk AI",
+  contact_subtext:      'Ready to accelerate your AI journey? Choose the best way to reach Sopheap.',
+  contact_telegram:     '095 666 788',
+  contact_email:        'sopheap.hin@gmail.com',
+  contact_location:     'Phnom Penh, Cambodia',
+  contact_form_heading: 'Send a Message',
+ 
+  // Footer
+  footer_tagline:      "AI Thinking for Cambodia's Future. Weekly insights, strategic depth, and local clarity.",
+  footer_telegram_url: 'https://t.me/+85595666788',
+  footer_email:        'sopheap.hin@gmail.com',
 };
 
 export function mergeSiteContent(fetched: Partial<SiteContent> | null): SiteContent {
