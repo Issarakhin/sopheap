@@ -74,7 +74,7 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
   const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
 
   // Services teaser items
-  const updateTeaserItem = (i: number, field: keyof ServiceTeaserItem, val: string) => {
+  const updateTeaserItem = (i: number, field: keyof ServiceTeaser, val: string) => {
     const items = content.home_services_items.map((s, idx) => idx === i ? { ...s, [field]: val } : s);
     set('home_services_items', items);
   };
