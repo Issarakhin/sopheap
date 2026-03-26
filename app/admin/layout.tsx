@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import {
   LayoutDashboard, FileText, Inbox, Users, Bot,
-  Newspaper, Key, LogOut, ExternalLink
+  Newspaper, Key, LogOut, ExternalLink, PenSquare
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV = [
   { href: '/admin', icon: LayoutDashboard, label: 'Dashboard', exact: true },
+  { href: '/admin/site-content', icon: PenSquare, label: 'Site Content' },
   { href: '/admin/posts', icon: FileText, label: 'Posts' },
   { href: '/admin/inquiries', icon: Inbox, label: 'Inquiries' },
   { href: '/admin/users', icon: Users, label: 'Users' },
