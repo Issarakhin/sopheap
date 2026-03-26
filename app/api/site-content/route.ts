@@ -1,20 +1,13 @@
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
+import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { mergeSiteContent } from '@/lib/site-content';
-
-async function getAdminDb() {
-  const { adminDb } = await import('@/lib/firebase-admin');
-  return adminDb();
-}
-
-async function getAdminAuth() {
-  const { adminAuth } = await import('@/lib/firebase-admin');
-  return adminAuth();
-}
 
 export async function GET() {
   try {
-    const db = await getAdminDb();
-    const snap = await db.collection('siteContent').doc('main').get();
+    const snap = await adminDb().collection('siteContent').doc('main').get();
     const stored = snap.exists ? snap.data() ?? null : null;
     return NextResponse.json(mergeSiteContent(stored as any));
   } catch (err) {
@@ -25,28 +18,18 @@ export async function GET() {
 
 export async function PUT(req: NextRequest) {
   try {
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
-    if (!token) {
-      return NextResponse.json({ error: 'No token' }, { status: 401 });
-    }
+    const token = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+    if (!token) return NextResponse.json({ error: 'No token' }, { status: 401 });
 
-    const auth = await getAdminAuth();
-    const decoded = await auth.verifyIdToken(token);
+    const decoded = await adminAuth().verifyIdToken(token);
 
-    const db = await getAdminDb();
-    const userSnap = await db.collection('users').doc(decoded.uid).get();
+    const userSnap = await adminDb().collection('users').doc(decoded.uid).get();
     const role = userSnap.exists ? (userSnap.data() as any)?.role : null;
+    if (role !== 'admin') return NextResponse.json({ error: 'Not admin' }, { status: 403 });
 
-    if (role !== 'admin') {
-      return NextResponse.json({ error: 'Not admin' }, { status: 403 });
-    }
+    const { updatedAt, updatedBy, ...content } = await req.json();
 
-    const body = await req.json();
-    // Remove server-managed fields
-    const { updatedAt, updatedBy, ...content } = body;
-
-    await db.collection('siteContent').doc('main').set(
+    await adminDb().collection('siteContent').doc('main').set(
       { ...content, updatedAt: new Date(), updatedBy: decoded.uid },
       { merge: true }
     );
