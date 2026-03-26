@@ -1,29 +1,22 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import { useLang } from '@/lib/lang-context';
-
-const CREDENTIALS = [
-  { year: '2001+', title: '23+ Years Senior Leadership', desc: 'Built and led major organisations across Cambodia.' },
-  { year: 'MBA', title: 'Asian Institute of Technology', desc: 'Graduate business education with strategic focus.' },
-  { year: '2021+', title: 'Co-Founder, Cambodia AI Group', desc: 'DG Academy · NeuraSpace AI · AngkorGate AI' },
-  { year: 'Ongoing', title: 'AI Trainer & Educator', desc: 'Trained thousands of executives, managers, and students.' },
-  { year: 'Regional', title: 'Conference Speaker', desc: 'Keynotes across Cambodia and the ASEAN region.' },
-  { year: 'Weekly', title: 'AI Frontier Brief & The Long View', desc: 'Tuesday newsletter and Sunday deep opinion column.' },
-];
-
-const COMPANIES = [
-  { name: 'DG Academy', desc: 'AI training platform for Cambodia and ASEAN. Corporate workshops, certificate programmes, workforce transformation.' },
-  { name: 'NeuraSpace AI', desc: 'AI solutions and deployment. AI agents, chatbots, document intelligence, custom LLM integrations.' },
-  { name: 'AngkorGate AI', desc: 'Ecosystem building. Connecting Cambodia\'s AI community, fostering partnerships, and advancing national AI readiness.' },
-];
+import { mergeSiteContent, type SiteContent } from '@/lib/site-content';
 
 export default function AboutPage() {
-  const { lang } = useLang();
+  const [sc, setSc] = useState<SiteContent>(mergeSiteContent(null));
+
+  useEffect(() => {
+    fetch('/api/site-content')
+      .then(r => r.json())
+      .then(data => setSc(mergeSiteContent(data)))
+      .catch(() => {/* keep defaults */});
+  }, []);
 
   return (
     <main className="min-h-screen">
@@ -36,10 +29,12 @@ export default function AboutPage() {
           <div className="absolute inset-0 bg-gradient-to-b from-brand-bg/30 via-brand-bg/60 to-brand-bg" />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 pt-32">
-          <span className="text-brand-gold font-mono text-xs uppercase tracking-widest block mb-3">HIN Sopheap</span>
+          <span className="text-brand-gold font-mono text-xs uppercase tracking-widest block mb-3">
+            {sc.about_hero_eyebrow}
+          </span>
           <h1 className="font-display text-5xl md:text-6xl font-bold text-brand-cream leading-tight mb-4">
-            Building Cambodia's AI Future —<br />
-            <span className="gold-text">One Leader at a Time</span>
+            {sc.about_hero_heading}<br />
+            <span className="gold-text">{sc.about_hero_highlight}</span>
           </h1>
         </div>
       </div>
@@ -47,62 +42,31 @@ export default function AboutPage() {
       {/* Bio */}
       <div className="max-w-4xl mx-auto px-6 py-16">
         <div className="prose prose-invert prose-lg max-w-none space-y-6">
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-brand-cream leading-relaxed text-xl font-display"
-          >
-            I've spent 23 years building Cambodia's business landscape. Across banks, conglomerates, and enterprises,
-            I've seen how leadership, strategy, and technology intersect — and how rarely they come together well.
-            AI is the moment when they finally can.
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-brand-muted leading-relaxed"
-          >
-            I pivoted fully into AI because I saw a dangerous gap forming in Cambodia: global AI adoption accelerating
-            while Cambodian leaders were left without the frameworks, skills, or local-context knowledge to act wisely.
-            The risk wasn't that Cambodia would adopt AI poorly — it was that Cambodia would adopt someone else's AI
-            without understanding what it means for our own economy, culture, and people.
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-brand-muted leading-relaxed"
-          >
-            Cambodia AI Group — the consolidated home of DG Academy, NeuraSpace AI, and AngkorGate AI — is my answer
-            to that gap. We train the people who lead organisations. We build the AI agents that run real workflows.
-            We consult the enterprises making strategic AI decisions. And we experiment constantly — because the only
-            way to understand how AI works in a Cambodian context is to build it here.
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="text-brand-muted leading-relaxed"
-          >
-            My writing — the AI Frontier Brief every Tuesday and The Long View every Sunday — exists because
-            I believe Cambodians deserve clear, honest, locally-grounded thinking about how AI is reshaping the world.
-            Not hype. Not fear. Insight with action attached.
-          </motion.p>
+          {sc.about_bio.map((para, i) => (
+            <motion.p
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className={i === 0
+                ? 'text-brand-cream leading-relaxed text-xl font-display'
+                : 'text-brand-muted leading-relaxed'}
+            >
+              {para}
+            </motion.p>
+          ))}
         </div>
       </div>
 
       {/* Credentials timeline */}
       <div className="border-y border-brand-border bg-brand-card">
         <div className="max-w-7xl mx-auto px-6 py-16">
-          <h2 className="font-display text-3xl font-bold text-brand-cream mb-12 text-center">Credentials & Milestones</h2>
+          <h2 className="font-display text-3xl font-bold text-brand-cream mb-12 text-center">Credentials &amp; Milestones</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {CREDENTIALS.map((c, i) => (
+            {sc.about_credentials.map((c, i) => (
               <motion.div
-                key={c.title}
+                key={i}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -122,9 +86,9 @@ export default function AboutPage() {
       <div className="max-w-7xl mx-auto px-6 py-16">
         <h2 className="font-display text-3xl font-bold text-brand-cream mb-12 text-center">Cambodia AI Group</h2>
         <div className="grid md:grid-cols-3 gap-8">
-          {COMPANIES.map((c, i) => (
+          {sc.about_companies.map((c, i) => (
             <motion.div
-              key={c.name}
+              key={i}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
