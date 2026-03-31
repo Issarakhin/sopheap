@@ -4,13 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, Plus, Trash2 } from 'lucide-react';
 import { useLang } from '@/lib/lang-context';
 import { cn } from '@/lib/utils';
 import { mergeSiteContent, type SiteContent } from '@/lib/site-content';
 
 export default function HeroSection() {
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [sc, setSc] = useState<SiteContent>(mergeSiteContent(null));
 
@@ -20,6 +20,7 @@ export default function HeroSection() {
       .then(data => setSc(mergeSiteContent(data)))
       .catch(() => {});
   }, []);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -132,28 +133,24 @@ export default function HeroSection() {
               transition={{ duration: 0.7, delay: 0.65 }}
               className="flex flex-wrap gap-4"
             >
-              <Link href="/blog" className="btn-primary text-base px-8 py-3.5">
+              <Link href={sc.home_hero_cta1_href || '/blog'} className="btn-primary text-base px-8 py-3.5">
                 {lang === 'kh' ? sc.home_hero_cta1_kh : sc.home_hero_cta1} <ArrowRight size={16} />
               </Link>
-              <Link href="/services" className="btn-ghost text-base px-8 py-3.5">
+              <Link href={sc.home_hero_cta2_href || '/services'} className="btn-ghost text-base px-8 py-3.5">
                 {lang === 'kh' ? sc.home_hero_cta2_kh : sc.home_hero_cta2}
               </Link>
             </motion.div>
 
-            {/* Stats row */}
+            {/* Stats row — fully editable */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.9 }}
               className="flex gap-8 mt-12 pt-8 border-t border-brand-border"
             >
-              {[
-                { n: '23+', label: 'Years of Leadership' },
-                { n: '1000s', label: 'People Trained' },
-                { n: 'ASEAN', label: 'Conference Speaker' },
-              ].map(s => (
-                <div key={s.n}>
-                  <div className="font-display text-2xl font-bold text-brand-gold">{s.n}</div>
+              {sc.home_hero_stats.map((s, i) => (
+                <div key={i}>
+                  <div className="font-display text-2xl font-bold text-brand-gold">{s.value}</div>
                   <div className="text-brand-muted text-xs font-mono mt-0.5">{s.label}</div>
                 </div>
               ))}
@@ -173,17 +170,17 @@ export default function HeroSection() {
               <div className="absolute inset-0 rounded-2xl overflow-hidden">
                 <Image
                   src="/images/photo_2026-03-16_14-49-43.jpg"
-                  alt="HIN Sopheap"
+                  alt={sc.home_hero_photo_name}
                   fill
                   className="object-cover object-center"
                   priority
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-bg/80 via-transparent to-transparent" />
               </div>
-              {/* Name card at bottom */}
+              {/* Name card — editable */}
               <div className="absolute bottom-6 left-6 right-6 bg-brand-bg/80 backdrop-blur-sm border border-brand-gold/20 rounded-xl p-4">
-                <p className="font-display text-lg font-bold text-brand-cream">HIN Sopheap</p>
-                <p className="text-brand-gold text-xs font-mono">Co-Founder & Chairman, Cambodia AI Group</p>
+                <p className="font-display text-lg font-bold text-brand-cream">{sc.home_hero_photo_name}</p>
+                <p className="text-brand-gold text-xs font-mono">{sc.home_hero_photo_title}</p>
               </div>
             </div>
           </motion.div>
