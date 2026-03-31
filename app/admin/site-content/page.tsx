@@ -5,12 +5,12 @@ import { useAuth } from '@/lib/auth-context';
 import {
   DEFAULT_CONTENT, mergeSiteContent,
   type SiteContent, type ServiceItem, type ServiceTeaser,
-  type Testimonial, type Credential, type Company, type HeroStat,
+  type Testimonial, type Credential, type Company, type HeroStat, type FooterLink,
 } from '@/lib/site-content';
 import {
   Save, Plus, Trash2, ChevronDown, ChevronUp,
   Loader2, Briefcase, User, Home, CheckCircle2,
-  Palette, Mail, BarChart2,
+  Palette, Mail, Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -78,6 +78,35 @@ function Card({ title, children, defaultOpen = true, badge }: {
   );
 }
 
+// link list editor (reusable for nav links & writing links)
+function LinkListEditor({ links, onChange, addLabel = 'Add Link' }: {
+  links: FooterLink[];
+  onChange: (links: FooterLink[]) => void;
+  addLabel?: string;
+}) {
+  const update = (i: number, field: keyof FooterLink, val: string) =>
+    onChange(links.map((l, idx) => idx === i ? { ...l, [field]: val } : l));
+  const remove = (i: number) => onChange(links.filter((_, idx) => idx !== i));
+  const add    = () => onChange([...links, { label: 'New Link', href: '/' }]);
+  const base   = 'bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50 w-full';
+  return (
+    <div className="space-y-2">
+      {links.map((l, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input value={l.label} onChange={e => update(i, 'label', e.target.value)}
+            placeholder="Label" className={cn(base, 'w-36 shrink-0')} />
+          <input value={l.href} onChange={e => update(i, 'href', e.target.value)}
+            placeholder="/path or https://..." className={base} />
+          <button onClick={() => remove(i)} className="p-2 text-brand-muted hover:text-red-400 shrink-0"><Trash2 size={13} /></button>
+        </div>
+      ))}
+      <button onClick={add} className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors">
+        <Plus size={13} /> {addLabel}
+      </button>
+    </div>
+  );
+}
+
 // ─── TAB: BRANDING ────────────────────────────────────────────────────────────
 
 function BrandingTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
@@ -90,12 +119,11 @@ function BrandingTab({ content, setContent }: { content: SiteContent; setContent
 
   return (
     <div className="space-y-4">
-
-      <Card title="🏷️ Site Name & Logo" badge="navbar">
-        <p className="text-brand-muted text-xs">The logo renders as: <span className="text-brand-cream font-mono">[Site Name] [TLD]</span> </p>
+      <Card title="🏷️ Site Name & Logo" badge="navbar + footer">
+        <p className="text-brand-muted text-xs">Logo renders as <span className="text-brand-cream font-mono">[Name] [TLD]</span> — e.g. SOPHEAP AI</p>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Site Name (left part)" value={content.site_name} onChange={v => set('site_name', v)} hint="e.g. SOPHEAP" />
-          <Field label="TLD (gold part after dot)" value={content.site_tld} onChange={v => set('site_tld', v)} hint="e.g. AI" />
+          <Field label="Site Name" value={content.site_name} onChange={v => set('site_name', v)} hint='e.g. SOPHEAP' />
+          <Field label="TLD (gold, after dot)" value={content.site_tld} onChange={v => set('site_tld', v)} hint='e.g. AI — leave blank to hide dot' />
         </div>
       </Card>
 
@@ -109,36 +137,30 @@ function BrandingTab({ content, setContent }: { content: SiteContent; setContent
         </div>
       </Card>
 
-      <Card title="📊 Hero Stats Row" defaultOpen={false} badge="bottom of hero">
-        <p className="text-brand-muted text-xs mb-2">The 3 numbers shown below the hero buttons.</p>
-        <div className="space-y-3">
-          {content.home_hero_stats.map((s, i) => (
-            <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-brand-gold text-xs font-mono">Stat {i + 1}</span>
-                {content.home_hero_stats.length > 1 && (
-                  <button onClick={() => set('home_hero_stats', content.home_hero_stats.filter((_, idx) => idx !== i))}
-                    className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Value (bold gold)" value={s.value} onChange={v => updateStat(i, 'value', v)} hint="e.g. 23+" />
-                <Field label="Label (small text)" value={s.label} onChange={v => updateStat(i, 'label', v)} hint="e.g. Years of Leadership" />
-              </div>
+      <Card title="📊 Hero Stats Row" defaultOpen={false} badge="below hero buttons">
+        {content.home_hero_stats.map((s, i) => (
+          <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-brand-gold text-xs font-mono">Stat {i + 1}</span>
+              {content.home_hero_stats.length > 1 && (
+                <button onClick={() => set('home_hero_stats', content.home_hero_stats.filter((_, idx) => idx !== i))}
+                  className="text-brand-muted hover:text-red-400"><Trash2 size={13} /></button>
+              )}
             </div>
-          ))}
-          <button
-            onClick={() => set('home_hero_stats', [...content.home_hero_stats, { value: 'NEW', label: 'Label' }])}
-            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"
-          ><Plus size={13} /> Add Stat</button>
-        </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Value (bold gold)" value={s.value} onChange={v => updateStat(i, 'value', v)} />
+              <Field label="Label (small text)" value={s.label} onChange={v => updateStat(i, 'label', v)} />
+            </div>
+          </div>
+        ))}
+        <button onClick={() => set('home_hero_stats', [...content.home_hero_stats, { value: 'NEW', label: 'Label' }])}
+          className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80"><Plus size={13} /> Add Stat</button>
       </Card>
 
       <Card title="🪪 Photo Name Card" defaultOpen={false} badge="over hero photo">
-        <Field label="Name (large bold)" value={content.home_hero_photo_name} onChange={v => set('home_hero_photo_name', v)} />
-        <Field label="Title / subtitle (gold mono)" value={content.home_hero_photo_title} onChange={v => set('home_hero_photo_title', v)} />
+        <Field label="Name (bold)" value={content.home_hero_photo_name} onChange={v => set('home_hero_photo_name', v)} />
+        <Field label="Title (gold mono)" value={content.home_hero_photo_title} onChange={v => set('home_hero_photo_title', v)} />
       </Card>
-
     </div>
   );
 }
@@ -155,9 +177,8 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
 
   return (
     <div className="space-y-4">
-
       <Card title="🏠 Hero Section">
-        <Field label="Badge pill (top)" value={content.home_hero_badge} onChange={v => set('home_hero_badge', v)} hint="Small uppercase text inside the rounded pill" />
+        <Field label="Badge pill (top)" value={content.home_hero_badge} onChange={v => set('home_hero_badge', v)} />
         <BilingualField
           label="Main Title (H1)"
           valueEn={content.home_hero_title} onChangeEn={v => set('home_hero_title', v)}
@@ -168,42 +189,33 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
           valueEn={content.home_hero_sub} onChangeEn={v => set('home_hero_sub', v)}
           valueKh={content.home_hero_sub_kh} onChangeKh={v => set('home_hero_sub_kh', v)}
         />
+        <BilingualField
+          label="Button 1 label"
+          valueEn={content.home_hero_cta1} onChangeEn={v => set('home_hero_cta1', v)}
+          valueKh={content.home_hero_cta1_kh} onChangeKh={v => set('home_hero_cta1_kh', v)}
+        />
+        <BilingualField
+          label="Button 2 label"
+          valueEn={content.home_hero_cta2} onChangeEn={v => set('home_hero_cta2', v)}
+          valueKh={content.home_hero_cta2_kh} onChangeKh={v => set('home_hero_cta2_kh', v)}
+        />
         <div className="grid grid-cols-2 gap-4">
-          <BilingualField
-            label="Button 1 label"
-            valueEn={content.home_hero_cta1} onChangeEn={v => set('home_hero_cta1', v)}
-            valueKh={content.home_hero_cta1_kh} onChangeKh={v => set('home_hero_cta1_kh', v)}
-          />
-          <BilingualField
-            label="Button 2 label"
-            valueEn={content.home_hero_cta2} onChangeEn={v => set('home_hero_cta2', v)}
-            valueKh={content.home_hero_cta2_kh} onChangeKh={v => set('home_hero_cta2_kh', v)}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label="Button 1 link (URL)" value={content.home_hero_cta1_href} onChange={v => set('home_hero_cta1_href', v)} hint="e.g. /blog or https://..." />
-          <Field label="Button 2 link (URL)" value={content.home_hero_cta2_href} onChange={v => set('home_hero_cta2_href', v)} hint="e.g. /services" />
+          <Field label="Button 1 URL" value={content.home_hero_cta1_href} onChange={v => set('home_hero_cta1_href', v)} hint="e.g. /blog" />
+          <Field label="Button 2 URL" value={content.home_hero_cta2_href} onChange={v => set('home_hero_cta2_href', v)} hint="e.g. /services" />
         </div>
       </Card>
 
       <Card title="⚡ Services Teaser Section" defaultOpen={false}>
         <Field label="Eyebrow Label" value={content.home_services_eyebrow} onChange={v => set('home_services_eyebrow', v)} />
-        <BilingualField
-          label="Section Heading"
+        <BilingualField label="Section Heading"
           valueEn={content.home_services_heading} onChangeEn={v => set('home_services_heading', v)}
-          valueKh={content.home_services_heading_kh} onChangeKh={v => set('home_services_heading_kh', v)}
-        />
-        <BilingualField
-          label="Section Subtext"
+          valueKh={content.home_services_heading_kh} onChangeKh={v => set('home_services_heading_kh', v)} />
+        <BilingualField label="Section Subtext" multiline rows={2}
           valueEn={content.home_services_sub} onChangeEn={v => set('home_services_sub', v)}
-          valueKh={content.home_services_sub_kh} onChangeKh={v => set('home_services_sub_kh', v)}
-          multiline rows={2}
-        />
-        <BilingualField
-          label="CTA Button"
+          valueKh={content.home_services_sub_kh} onChangeKh={v => set('home_services_sub_kh', v)} />
+        <BilingualField label="CTA Button"
           valueEn={content.home_services_cta} onChangeEn={v => set('home_services_cta', v)}
-          valueKh={content.home_services_cta_kh} onChangeKh={v => set('home_services_cta_kh', v)}
-        />
+          valueKh={content.home_services_cta_kh} onChangeKh={v => set('home_services_cta_kh', v)} />
         <div className="pt-2 space-y-3">
           <label className="block text-brand-muted text-xs font-mono uppercase tracking-wider">Service Cards</label>
           {content.home_services_items.map((s, i) => (
@@ -228,7 +240,7 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
         <Field label="Paragraph 1" value={content.home_about_para1} onChange={v => set('home_about_para1', v)} multiline rows={3} />
         <Field label="Paragraph 2" value={content.home_about_para2} onChange={v => set('home_about_para2', v)} multiline rows={3} />
         <Field label="CTA Link Text" value={content.home_about_cta} onChange={v => set('home_about_cta', v)} />
-        <div className="grid grid-cols-2 gap-4 pt-1">
+        <div className="grid grid-cols-2 gap-4">
           <Field label="Badge Label (e.g. MBA)" value={content.home_about_badge_label} onChange={v => set('home_about_badge_label', v)} />
           <Field label="Badge Subtitle" value={content.home_about_badge_sub} onChange={v => set('home_about_badge_sub', v)} />
         </div>
@@ -236,28 +248,19 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
 
       <Card title="📧 Subscribe Banner" defaultOpen={false}>
         <Field label="Eyebrow Label" value={content.home_subscribe_eyebrow} onChange={v => set('home_subscribe_eyebrow', v)} />
-        <BilingualField
-          label="Heading"
+        <BilingualField label="Heading"
           valueEn={content.home_subscribe_heading} onChangeEn={v => set('home_subscribe_heading', v)}
-          valueKh={content.home_subscribe_heading_kh} onChangeKh={v => set('home_subscribe_heading_kh', v)}
-        />
-        <BilingualField
-          label="Subtext"
+          valueKh={content.home_subscribe_heading_kh} onChangeKh={v => set('home_subscribe_heading_kh', v)} />
+        <BilingualField label="Subtext"
           valueEn={content.home_subscribe_sub} onChangeEn={v => set('home_subscribe_sub', v)}
-          valueKh={content.home_subscribe_sub_kh} onChangeKh={v => set('home_subscribe_sub_kh', v)}
-        />
-        <BilingualField
-          label="CTA Button"
+          valueKh={content.home_subscribe_sub_kh} onChangeKh={v => set('home_subscribe_sub_kh', v)} />
+        <BilingualField label="CTA Button"
           valueEn={content.home_subscribe_cta} onChangeEn={v => set('home_subscribe_cta', v)}
-          valueKh={content.home_subscribe_cta_kh} onChangeKh={v => set('home_subscribe_cta_kh', v)}
-        />
-        <BilingualField
-          label="Email Placeholder"
+          valueKh={content.home_subscribe_cta_kh} onChangeKh={v => set('home_subscribe_cta_kh', v)} />
+        <BilingualField label="Email Placeholder"
           valueEn={content.home_subscribe_placeholder} onChangeEn={v => set('home_subscribe_placeholder', v)}
-          valueKh={content.home_subscribe_placeholder_kh} onChangeKh={v => set('home_subscribe_placeholder_kh', v)}
-        />
+          valueKh={content.home_subscribe_placeholder_kh} onChangeKh={v => set('home_subscribe_placeholder_kh', v)} />
       </Card>
-
     </div>
   );
 }
@@ -278,14 +281,8 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
     });
     set('services_items', items);
   };
-  const addFeature = (si: number) => {
-    const items = content.services_items.map((s, i) => i === si ? { ...s, features: [...s.features, 'New feature'] } : s);
-    set('services_items', items);
-  };
-  const removeFeature = (si: number, fi: number) => {
-    const items = content.services_items.map((s, i) => i === si ? { ...s, features: s.features.filter((_, idx) => idx !== fi) } : s);
-    set('services_items', items);
-  };
+  const addFeature    = (si: number) => { const items = content.services_items.map((s, i) => i === si ? { ...s, features: [...s.features, 'New feature'] } : s); set('services_items', items); };
+  const removeFeature = (si: number, fi: number) => { const items = content.services_items.map((s, i) => i === si ? { ...s, features: s.features.filter((_, idx) => idx !== fi) } : s); set('services_items', items); };
   const updateTestimonial = (i: number, field: keyof Testimonial, val: string) => {
     const t = content.services_testimonials.map((tm, idx) => idx === i ? { ...tm, [field]: val } : tm);
     set('services_testimonials', t);
@@ -298,7 +295,7 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
           <Field label="Eyebrow" value={content.services_hero_eyebrow} onChange={v => set('services_hero_eyebrow', v)} />
           <Field label="Highlight Text (gold)" value={content.services_hero_highlight} onChange={v => set('services_hero_highlight', v)} />
         </div>
-        <Field label="Heading Prefix" value={content.services_hero_heading} onChange={v => set('services_hero_heading', v)} hint='"From [AI Curious] to AI Capable"' />
+        <Field label="Heading Prefix" value={content.services_hero_heading} onChange={v => set('services_hero_heading', v)} />
         <Field label="Subtext" value={content.services_hero_subtext} onChange={v => set('services_hero_subtext', v)} multiline rows={2} />
       </Card>
 
@@ -312,12 +309,10 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
               <div key={fi} className="flex items-center gap-2">
                 <input type="text" value={f} onChange={e => updateServiceFeature(i, fi, e.target.value)}
                   className="flex-1 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50" />
-                <button onClick={() => removeFeature(i, fi)} className="p-2 text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <button onClick={() => removeFeature(i, fi)} className="p-2 text-brand-muted hover:text-red-400"><Trash2 size={14} /></button>
               </div>
             ))}
-            <button onClick={() => addFeature(i)} className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors">
-              <Plus size={13} /> Add Feature
-            </button>
+            <button onClick={() => addFeature(i)} className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80"><Plus size={13} /> Add Feature</button>
           </div>
         </Card>
       ))}
@@ -328,7 +323,7 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
             <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-brand-gold text-xs font-mono">Testimonial {i + 1}</span>
-                <button onClick={() => set('services_testimonials', content.services_testimonials.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <button onClick={() => set('services_testimonials', content.services_testimonials.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400"><Trash2 size={14} /></button>
               </div>
               <Field label="Quote" value={tm.quote} onChange={v => updateTestimonial(i, 'quote', v)} multiline rows={2} />
               <div className="grid grid-cols-2 gap-3">
@@ -337,10 +332,8 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
               </div>
             </div>
           ))}
-          <button
-            onClick={() => set('services_testimonials', [...content.services_testimonials, { quote: 'Enter quote here.', name: 'Client Name', org: 'Organisation' }])}
-            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"
-          ><Plus size={13} /> Add Testimonial</button>
+          <button onClick={() => set('services_testimonials', [...content.services_testimonials, { quote: 'Enter quote.', name: 'Client Name', org: 'Organisation' }])}
+            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80"><Plus size={13} /> Add Testimonial</button>
         </div>
       </Card>
 
@@ -360,12 +353,10 @@ function ServicesTab({ content, setContent }: { content: SiteContent; setContent
 function AboutTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
   const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
   const updateCred = (i: number, field: keyof Credential, val: string) => {
-    const creds = content.about_credentials.map((c, idx) => idx === i ? { ...c, [field]: val } : c);
-    set('about_credentials', creds);
+    set('about_credentials', content.about_credentials.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
   };
   const updateCompany = (i: number, field: keyof Company, val: string) => {
-    const companies = content.about_companies.map((c, idx) => idx === i ? { ...c, [field]: val } : c);
-    set('about_companies', companies);
+    set('about_companies', content.about_companies.map((c, idx) => idx === i ? { ...c, [field]: val } : c));
   };
 
   return (
@@ -382,13 +373,13 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
             <div key={i}>
               <div className="flex items-center justify-between mb-1">
                 <span className="text-brand-muted text-xs font-mono">Paragraph {i + 1}</span>
-                <button onClick={() => set('about_bio', content.about_bio.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                <button onClick={() => set('about_bio', content.about_bio.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400"><Trash2 size={13} /></button>
               </div>
               <textarea rows={3} value={para} onChange={e => set('about_bio', content.about_bio.map((b, idx) => idx === i ? e.target.value : b))}
                 className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50 resize-none" />
             </div>
           ))}
-          <button onClick={() => set('about_bio', [...content.about_bio, 'New paragraph...'])} className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors">
+          <button onClick={() => set('about_bio', [...content.about_bio, 'New paragraph...'])} className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80">
             <Plus size={13} /> Add Paragraph
           </button>
         </div>
@@ -400,7 +391,7 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
             <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-brand-gold text-xs font-mono">Credential {i + 1}</span>
-                <button onClick={() => set('about_credentials', content.about_credentials.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <button onClick={() => set('about_credentials', content.about_credentials.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400"><Trash2 size={14} /></button>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <Field label="Year" value={cred.year} onChange={v => updateCred(i, 'year', v)} />
@@ -410,7 +401,7 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
             </div>
           ))}
           <button onClick={() => set('about_credentials', [...content.about_credentials, { year: 'Year', title: 'Title', desc: 'Description.' }])}
-            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"><Plus size={13} /> Add Credential</button>
+            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80"><Plus size={13} /> Add Credential</button>
         </div>
       </Card>
 
@@ -420,28 +411,34 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
             <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-brand-gold text-xs font-mono">{co.name}</span>
-                <button onClick={() => set('about_companies', content.about_companies.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                <button onClick={() => set('about_companies', content.about_companies.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400"><Trash2 size={14} /></button>
               </div>
               <Field label="Company Name" value={co.name} onChange={v => updateCompany(i, 'name', v)} />
               <Field label="Description" value={co.desc} onChange={v => updateCompany(i, 'desc', v)} multiline rows={2} />
             </div>
           ))}
           <button onClick={() => set('about_companies', [...content.about_companies, { name: 'New Company', desc: 'Description.' }])}
-            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"><Plus size={13} /> Add Company</button>
+            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80"><Plus size={13} /> Add Company</button>
         </div>
       </Card>
     </div>
   );
 }
 
-// ─── TAB: CONTACT & FOOTER ───────────────────────────────────────────────────
+// ─── TAB: CONTACT, FOOTER & SEO ──────────────────────────────────────────────
 
 function ContactTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
   const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
 
   return (
     <div className="space-y-4">
-      <Card title="📬 Contact Page">
+
+      <Card title="🔍 SEO & Browser Tab">
+        <Field label="Browser Tab Title" value={content.meta_title} onChange={v => set('meta_title', v)} hint="What shows in the browser tab and Google search results" />
+        <Field label="Meta Description" value={content.meta_description} onChange={v => set('meta_description', v)} multiline rows={2} hint="Shown under your site name in Google (~160 chars max)" />
+      </Card>
+
+      <Card title="📬 Contact Page" defaultOpen={false}>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Eyebrow" value={content.contact_eyebrow} onChange={v => set('contact_eyebrow', v)} />
           <Field label="Heading" value={content.contact_heading} onChange={v => set('contact_heading', v)} />
@@ -450,17 +447,43 @@ function ContactTab({ content, setContent }: { content: SiteContent; setContent:
         <Field label="Form Section Heading" value={content.contact_form_heading} onChange={v => set('contact_form_heading', v)} />
       </Card>
 
-      <Card title="📞 Contact Details">
-        <Field label="Telegram / Phone" value={content.contact_telegram} onChange={v => set('contact_telegram', v)} hint="Shown as clickable contact — number only, e.g. 095 666 788" />
+      <Card title="📞 Contact Details" defaultOpen={false}>
+        <Field label="Telegram / Phone" value={content.contact_telegram} onChange={v => set('contact_telegram', v)} hint="Number displayed on contact page" />
         <Field label="Email Address" value={content.contact_email} onChange={v => set('contact_email', v)} />
         <Field label="Location" value={content.contact_location} onChange={v => set('contact_location', v)} />
       </Card>
 
-      <Card title="🔻 Footer" defaultOpen={false}>
-        <Field label="Tagline" value={content.footer_tagline} onChange={v => set('footer_tagline', v)} multiline rows={2} hint="Shown under the logo in the footer" />
-        <Field label="Telegram URL (full link)" value={content.footer_telegram_url} onChange={v => set('footer_telegram_url', v)} placeholder="https://t.me/+855..." />
+      <Card title="🔻 Footer — Brand & Social" defaultOpen={false}>
+        <Field label="Tagline (under logo)" value={content.footer_tagline} onChange={v => set('footer_tagline', v)} multiline rows={2} />
+        <Field label="Telegram URL" value={content.footer_telegram_url} onChange={v => set('footer_telegram_url', v)} placeholder="https://t.me/..." />
         <Field label="Footer Email" value={content.footer_email} onChange={v => set('footer_email', v)} />
       </Card>
+
+      <Card title="🔻 Footer — Navigate Column" defaultOpen={false}>
+        <Field label="Column Heading" value={content.footer_nav_heading} onChange={v => set('footer_nav_heading', v)} hint='e.g. "Navigate"' />
+        <label className="block text-brand-muted text-xs font-mono uppercase tracking-wider mt-3 mb-1">Links</label>
+        <LinkListEditor
+          links={content.footer_nav_links}
+          onChange={v => set('footer_nav_links', v)}
+          addLabel="Add Nav Link"
+        />
+      </Card>
+
+      <Card title="🔻 Footer — Writing Column" defaultOpen={false}>
+        <Field label="Column Heading" value={content.footer_writing_heading} onChange={v => set('footer_writing_heading', v)} hint='e.g. "Writing"' />
+        <label className="block text-brand-muted text-xs font-mono uppercase tracking-wider mt-3 mb-1">Links</label>
+        <LinkListEditor
+          links={content.footer_writing_links}
+          onChange={v => set('footer_writing_links', v)}
+          addLabel="Add Writing Link"
+        />
+      </Card>
+
+      <Card title="🔻 Footer — Bottom Bar" defaultOpen={false}>
+        <Field label="Copyright Name" value={content.footer_copyright_name} onChange={v => set('footer_copyright_name', v)} hint='e.g. "HIN Sopheap" — year is added automatically' />
+        <Field label="Built-in text (right side)" value={content.footer_built_text} onChange={v => set('footer_built_text', v)} hint='e.g. "Built in Phnom Penh, Cambodia"' />
+      </Card>
+
     </div>
   );
 }
@@ -468,11 +491,11 @@ function ContactTab({ content, setContent }: { content: SiteContent; setContent:
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: 'branding', label: 'Branding',      icon: Palette   },
-  { key: 'home',     label: 'Home',          icon: Home      },
-  { key: 'services', label: 'Services',      icon: Briefcase },
-  { key: 'about',    label: 'About',         icon: User      },
-  { key: 'contact',  label: 'Contact/Footer',icon: Mail      },
+  { key: 'branding', label: 'Branding',        icon: Palette   },
+  { key: 'home',     label: 'Home',            icon: Home      },
+  { key: 'services', label: 'Services',        icon: Briefcase },
+  { key: 'about',    label: 'About',           icon: User      },
+  { key: 'contact',  label: 'Contact & Footer',icon: Mail      },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -540,26 +563,20 @@ export default function SiteContentPage() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl font-bold text-brand-cream">Site Content Editor</h1>
-          <p className="text-brand-muted text-sm mt-1">Edit everything across the site — site name, headings, buttons, stats, contact info, footer. Changes go live instantly.</p>
+          <p className="text-brand-muted text-sm mt-1">Edit everything — site name, headings, buttons, stats, footer links, SEO. Changes go live instantly.</p>
         </div>
         <SaveBtn />
       </div>
 
-      {/* Tabs */}
       <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-xl p-1 mb-6 flex-wrap">
         {TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
-              activeTab === tab.key
-                ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20'
-                : 'text-brand-muted hover:text-brand-cream'
+              activeTab === tab.key ? 'bg-brand-gold/10 text-brand-gold border border-brand-gold/20' : 'text-brand-muted hover:text-brand-cream'
             )}
           >
             <tab.icon size={14} />
@@ -568,14 +585,12 @@ export default function SiteContentPage() {
         ))}
       </div>
 
-      {/* Tab panels */}
       {activeTab === 'branding' && <BrandingTab content={content} setContent={setContent} />}
       {activeTab === 'home'     && <HomeTab     content={content} setContent={setContent} />}
       {activeTab === 'services' && <ServicesTab content={content} setContent={setContent} />}
       {activeTab === 'about'    && <AboutTab    content={content} setContent={setContent} />}
       {activeTab === 'contact'  && <ContactTab  content={content} setContent={setContent} />}
 
-      {/* Sticky save */}
       <div className="fixed bottom-6 right-8 z-50">
         <SaveBtn full />
       </div>
