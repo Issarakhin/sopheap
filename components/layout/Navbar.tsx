@@ -45,7 +45,7 @@ export default function Navbar() {
         <Link href="/" className="flex items-center gap-1">
           <span className="font-display text-xl font-bold text-brand-cream tracking-tight">
             {sc.site_name}
-            <span className="text-brand-gold">.</span>
+            <span className="text-brand-gold"></span>
             <span className="text-brand-gold">{sc.site_tld}</span>
           </span>
         </Link>
