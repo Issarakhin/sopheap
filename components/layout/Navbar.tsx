@@ -6,12 +6,14 @@ import { Menu, X, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { useLang } from '@/lib/lang-context';
 import { cn } from '@/lib/utils';
+import { mergeSiteContent, type SiteContent } from '@/lib/site-content';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [sc, setSc] = useState<SiteContent>(mergeSiteContent(null));
   const { user, logout, isAdmin } = useAuth();
-  const { lang, setLang, t } = useLang();
+  const { lang, setLang } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -19,11 +21,18 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    fetch('/api/site-content')
+      .then(r => r.json())
+      .then(data => setSc(mergeSiteContent(data)))
+      .catch(() => {});
+  }, []);
+
   const navLinks = [
-    { href: '/blog', label: t('nav.blog') },
-    { href: '/services', label: t('nav.services') },
-    { href: '/about', label: t('nav.about') },
-    { href: '/contact', label: t('nav.contact') },
+    { href: '/blog',     label: sc.nav_blog     },
+    { href: '/services', label: sc.nav_services },
+    { href: '/about',    label: sc.nav_about    },
+    { href: '/contact',  label: sc.nav_contact  },
   ];
 
   return (
@@ -32,12 +41,12 @@ export default function Navbar() {
       scrolled ? 'bg-brand-bg/95 backdrop-blur-md border-b border-brand-border' : 'bg-transparent'
     )}>
       <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
+        {/* Logo — fully editable via site-content */}
         <Link href="/" className="flex items-center gap-1">
           <span className="font-display text-xl font-bold text-brand-cream tracking-tight">
-            SOPHEAP
+            {sc.site_name}
             <span className="text-brand-gold">.</span>
-            <span className="text-brand-gold">AI</span>
+            <span className="text-brand-gold">{sc.site_tld}</span>
           </span>
         </Link>
 
@@ -56,7 +65,6 @@ export default function Navbar() {
 
         {/* Right controls */}
         <div className="hidden md:flex items-center gap-4">
-          {/* Language switcher */}
           <div className="flex items-center gap-1 border border-brand-border rounded-lg overflow-hidden">
             <button
               onClick={() => setLang('en')}
@@ -94,7 +102,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/auth/login" className="btn-ghost py-2 px-4 text-sm">
-              {t('nav.login')}
+              {sc.nav_login}
             </Link>
           )}
         </div>
@@ -137,7 +145,7 @@ export default function Navbar() {
           </div>
           {!user && (
             <Link href="/auth/login" className="btn-ghost w-full text-center justify-center text-sm mt-2 block">
-              {t('nav.login')}
+              {sc.nav_login}
             </Link>
           )}
         </div>
