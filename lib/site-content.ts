@@ -219,7 +219,3 @@ export function mergeSiteContent(fetched: Partial<SiteContent> | null): SiteCont
   };
 };
 
-export function mergeSiteContent(fetched: Partial<SiteContent> | null): SiteContent {
-  if (!fetched) return DEFAULT_CONTENT;
-  return { ...DEFAULT_CONTENT, ...fetched };
-}
