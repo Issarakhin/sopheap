@@ -5,65 +5,140 @@ import { useAuth } from '@/lib/auth-context';
 import {
   DEFAULT_CONTENT, mergeSiteContent,
   type SiteContent, type ServiceItem, type ServiceTeaser,
-  type Testimonial, type Credential, type Company,
+  type Testimonial, type Credential, type Company, type HeroStat,
 } from '@/lib/site-content';
 import {
-  Save, Plus, Trash2, ChevronDown, ChevronUp, Globe,
-  Loader2, LayoutTemplate, Briefcase, User, Home, CheckCircle2,
+  Save, Plus, Trash2, ChevronDown, ChevronUp,
+  Loader2, Briefcase, User, Home, CheckCircle2,
+  Palette, Mail, BarChart2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 // ─── PRIMITIVES ───────────────────────────────────────────────────────────────
 
-function Field({ label, value, onChange, multiline = false, rows = 3, hint, mono = false }: {
+function Field({ label, value, onChange, multiline = false, rows = 3, hint, mono = false, placeholder }: {
   label: string; value: string; onChange: (v: string) => void;
-  multiline?: boolean; rows?: number; hint?: string; mono?: boolean;
+  multiline?: boolean; rows?: number; hint?: string; mono?: boolean; placeholder?: string;
 }) {
   const base = 'w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50 transition-colors resize-none';
   return (
     <div className="space-y-1">
       <label className="block text-brand-muted text-xs font-mono uppercase tracking-wider">{label}</label>
       {multiline
-        ? <textarea rows={rows} value={value} onChange={e => onChange(e.target.value)} className={cn(base, mono && 'font-mono text-xs')} />
-        : <input type="text" value={value} onChange={e => onChange(e.target.value)} className={cn(base, mono && 'font-mono text-xs')} />}
+        ? <textarea rows={rows} value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} className={cn(base, mono && 'font-mono text-xs')} />
+        : <input type="text" value={value} placeholder={placeholder} onChange={e => onChange(e.target.value)} className={cn(base, mono && 'font-mono text-xs')} />}
       {hint && <p className="text-brand-muted text-xs">{hint}</p>}
     </div>
   );
 }
 
-function BilingualField({ label, valueEn, valueKh, onChangeEn, onChangeKh }: {
+function BilingualField({ label, valueEn, valueKh, onChangeEn, onChangeKh, multiline, rows }: {
   label: string; valueEn: string; valueKh: string;
   onChangeEn: (v: string) => void; onChangeKh: (v: string) => void;
+  multiline?: boolean; rows?: number;
 }) {
+  const base = 'w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50 transition-colors resize-none';
   return (
     <div className="space-y-2">
       <label className="block text-brand-muted text-xs font-mono uppercase tracking-wider">{label}</label>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <div className="text-brand-muted text-xs mb-1">🇬🇧 English</div>
-          <input type="text" value={valueEn} onChange={e => onChangeEn(e.target.value)}
-            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm focus:outline-none focus:border-brand-gold/50 transition-colors" />
+          {multiline
+            ? <textarea rows={rows ?? 2} value={valueEn} onChange={e => onChangeEn(e.target.value)} className={base} />
+            : <input type="text" value={valueEn} onChange={e => onChangeEn(e.target.value)} className={base} />}
         </div>
         <div>
           <div className="text-brand-muted text-xs mb-1">🇰🇭 Khmer</div>
-          <input type="text" value={valueKh} onChange={e => onChangeKh(e.target.value)}
-            className="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-brand-cream text-sm font-mono text-xs focus:outline-none focus:border-brand-gold/50 transition-colors" />
+          {multiline
+            ? <textarea rows={rows ?? 2} value={valueKh} onChange={e => onChangeKh(e.target.value)} className={cn(base, 'font-mono text-xs')} />
+            : <input type="text" value={valueKh} onChange={e => onChangeKh(e.target.value)} className={cn(base, 'font-mono text-xs')} />}
         </div>
       </div>
     </div>
   );
 }
 
-function Card({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+function Card({ title, children, defaultOpen = true, badge }: {
+  title: string; children: React.ReactNode; defaultOpen?: boolean; badge?: string;
+}) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
       <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between px-6 py-4 hover:bg-brand-border/20 transition-colors">
-        <span className="font-semibold text-brand-cream text-sm">{title}</span>
+        <div className="flex items-center gap-3">
+          <span className="font-semibold text-brand-cream text-sm">{title}</span>
+          {badge && <span className="text-xs font-mono text-brand-gold bg-brand-gold/10 border border-brand-gold/20 px-2 py-0.5 rounded-full">{badge}</span>}
+        </div>
         {open ? <ChevronUp size={16} className="text-brand-muted" /> : <ChevronDown size={16} className="text-brand-muted" />}
       </button>
       {open && <div className="px-6 pb-6 space-y-4 border-t border-brand-border pt-5">{children}</div>}
+    </div>
+  );
+}
+
+// ─── TAB: BRANDING ────────────────────────────────────────────────────────────
+
+function BrandingTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
+  const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
+
+  const updateStat = (i: number, field: keyof HeroStat, val: string) => {
+    const stats = content.home_hero_stats.map((s, idx) => idx === i ? { ...s, [field]: val } : s);
+    set('home_hero_stats', stats);
+  };
+
+  return (
+    <div className="space-y-4">
+
+      <Card title="🏷️ Site Name & Logo" badge="navbar">
+        <p className="text-brand-muted text-xs">The logo renders as: <span className="text-brand-cream font-mono">[Site Name].[TLD]</span> — e.g. SOPHEAP.AI</p>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Site Name (left part)" value={content.site_name} onChange={v => set('site_name', v)} hint="e.g. SOPHEAP" />
+          <Field label="TLD (gold part after dot)" value={content.site_tld} onChange={v => set('site_tld', v)} hint="e.g. AI" />
+        </div>
+      </Card>
+
+      <Card title="🔗 Navigation Labels" defaultOpen={false}>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Blog link" value={content.nav_blog} onChange={v => set('nav_blog', v)} />
+          <Field label="Services link" value={content.nav_services} onChange={v => set('nav_services', v)} />
+          <Field label="About link" value={content.nav_about} onChange={v => set('nav_about', v)} />
+          <Field label="Contact link" value={content.nav_contact} onChange={v => set('nav_contact', v)} />
+          <Field label="Login button" value={content.nav_login} onChange={v => set('nav_login', v)} />
+        </div>
+      </Card>
+
+      <Card title="📊 Hero Stats Row" defaultOpen={false} badge="bottom of hero">
+        <p className="text-brand-muted text-xs mb-2">The 3 numbers shown below the hero buttons.</p>
+        <div className="space-y-3">
+          {content.home_hero_stats.map((s, i) => (
+            <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-brand-gold text-xs font-mono">Stat {i + 1}</span>
+                {content.home_hero_stats.length > 1 && (
+                  <button onClick={() => set('home_hero_stats', content.home_hero_stats.filter((_, idx) => idx !== i))}
+                    className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Value (bold gold)" value={s.value} onChange={v => updateStat(i, 'value', v)} hint="e.g. 23+" />
+                <Field label="Label (small text)" value={s.label} onChange={v => updateStat(i, 'label', v)} hint="e.g. Years of Leadership" />
+              </div>
+            </div>
+          ))}
+          <button
+            onClick={() => set('home_hero_stats', [...content.home_hero_stats, { value: 'NEW', label: 'Label' }])}
+            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"
+          ><Plus size={13} /> Add Stat</button>
+        </div>
+      </Card>
+
+      <Card title="🪪 Photo Name Card" defaultOpen={false} badge="over hero photo">
+        <Field label="Name (large bold)" value={content.home_hero_photo_name} onChange={v => set('home_hero_photo_name', v)} />
+        <Field label="Title / subtitle (gold mono)" value={content.home_hero_photo_title} onChange={v => set('home_hero_photo_title', v)} />
+      </Card>
+
     </div>
   );
 }
@@ -73,7 +148,6 @@ function Card({ title, children, defaultOpen = true }: { title: string; children
 function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
   const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
 
-  // Services teaser items
   const updateTeaserItem = (i: number, field: keyof ServiceTeaser, val: string) => {
     const items = content.home_services_items.map((s, idx) => idx === i ? { ...s, [field]: val } : s);
     set('home_services_items', items);
@@ -82,11 +156,10 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
   return (
     <div className="space-y-4">
 
-      {/* ── HERO ── */}
       <Card title="🏠 Hero Section">
-        <Field label="Badge / Tagline (top pill)" value={content.home_hero_badge} onChange={v => set('home_hero_badge', v)} />
+        <Field label="Badge pill (top)" value={content.home_hero_badge} onChange={v => set('home_hero_badge', v)} hint="Small uppercase text inside the rounded pill" />
         <BilingualField
-          label="Main Title"
+          label="Main Title (H1)"
           valueEn={content.home_hero_title} onChangeEn={v => set('home_hero_title', v)}
           valueKh={content.home_hero_title_kh} onChangeKh={v => set('home_hero_title_kh', v)}
         />
@@ -95,19 +168,24 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
           valueEn={content.home_hero_sub} onChangeEn={v => set('home_hero_sub', v)}
           valueKh={content.home_hero_sub_kh} onChangeKh={v => set('home_hero_sub_kh', v)}
         />
-        <BilingualField
-          label="CTA Button 1 (goes to /blog)"
-          valueEn={content.home_hero_cta1} onChangeEn={v => set('home_hero_cta1', v)}
-          valueKh={content.home_hero_cta1_kh} onChangeKh={v => set('home_hero_cta1_kh', v)}
-        />
-        <BilingualField
-          label="CTA Button 2 (goes to /services)"
-          valueEn={content.home_hero_cta2} onChangeEn={v => set('home_hero_cta2', v)}
-          valueKh={content.home_hero_cta2_kh} onChangeKh={v => set('home_hero_cta2_kh', v)}
-        />
+        <div className="grid grid-cols-2 gap-4">
+          <BilingualField
+            label="Button 1 label"
+            valueEn={content.home_hero_cta1} onChangeEn={v => set('home_hero_cta1', v)}
+            valueKh={content.home_hero_cta1_kh} onChangeKh={v => set('home_hero_cta1_kh', v)}
+          />
+          <BilingualField
+            label="Button 2 label"
+            valueEn={content.home_hero_cta2} onChangeEn={v => set('home_hero_cta2', v)}
+            valueKh={content.home_hero_cta2_kh} onChangeKh={v => set('home_hero_cta2_kh', v)}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Button 1 link (URL)" value={content.home_hero_cta1_href} onChange={v => set('home_hero_cta1_href', v)} hint="e.g. /blog or https://..." />
+          <Field label="Button 2 link (URL)" value={content.home_hero_cta2_href} onChange={v => set('home_hero_cta2_href', v)} hint="e.g. /services" />
+        </div>
       </Card>
 
-      {/* ── SERVICES TEASER ── */}
       <Card title="⚡ Services Teaser Section" defaultOpen={false}>
         <Field label="Eyebrow Label" value={content.home_services_eyebrow} onChange={v => set('home_services_eyebrow', v)} />
         <BilingualField
@@ -119,6 +197,7 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
           label="Section Subtext"
           valueEn={content.home_services_sub} onChangeEn={v => set('home_services_sub', v)}
           valueKh={content.home_services_sub_kh} onChangeKh={v => set('home_services_sub_kh', v)}
+          multiline rows={2}
         />
         <BilingualField
           label="CTA Button"
@@ -140,7 +219,6 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
         </div>
       </Card>
 
-      {/* ── ABOUT TEASER ── */}
       <Card title="👤 About Teaser Section" defaultOpen={false}>
         <Field label="Eyebrow Label" value={content.home_about_eyebrow} onChange={v => set('home_about_eyebrow', v)} />
         <div className="grid grid-cols-2 gap-4">
@@ -156,7 +234,6 @@ function HomeTab({ content, setContent }: { content: SiteContent; setContent: (c
         </div>
       </Card>
 
-      {/* ── SUBSCRIBE BANNER ── */}
       <Card title="📧 Subscribe Banner" defaultOpen={false}>
         <Field label="Eyebrow Label" value={content.home_subscribe_eyebrow} onChange={v => set('home_subscribe_eyebrow', v)} />
         <BilingualField
@@ -341,12 +418,48 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
         <div className="space-y-4">
           {content.about_companies.map((co, i) => (
             <div key={i} className="bg-brand-bg border border-brand-border rounded-xl p-4 space-y-3">
-              <span className="text-brand-gold text-xs font-mono">{co.name}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-brand-gold text-xs font-mono">{co.name}</span>
+                <button onClick={() => set('about_companies', content.about_companies.filter((_, idx) => idx !== i))} className="text-brand-muted hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+              </div>
               <Field label="Company Name" value={co.name} onChange={v => updateCompany(i, 'name', v)} />
               <Field label="Description" value={co.desc} onChange={v => updateCompany(i, 'desc', v)} multiline rows={2} />
             </div>
           ))}
+          <button onClick={() => set('about_companies', [...content.about_companies, { name: 'New Company', desc: 'Description.' }])}
+            className="flex items-center gap-1.5 text-xs text-brand-gold hover:text-brand-gold/80 transition-colors"><Plus size={13} /> Add Company</button>
         </div>
+      </Card>
+    </div>
+  );
+}
+
+// ─── TAB: CONTACT & FOOTER ───────────────────────────────────────────────────
+
+function ContactTab({ content, setContent }: { content: SiteContent; setContent: (c: SiteContent) => void }) {
+  const set = (key: keyof SiteContent, val: any) => setContent({ ...content, [key]: val });
+
+  return (
+    <div className="space-y-4">
+      <Card title="📬 Contact Page">
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Eyebrow" value={content.contact_eyebrow} onChange={v => set('contact_eyebrow', v)} />
+          <Field label="Heading" value={content.contact_heading} onChange={v => set('contact_heading', v)} />
+        </div>
+        <Field label="Subtext" value={content.contact_subtext} onChange={v => set('contact_subtext', v)} multiline rows={2} />
+        <Field label="Form Section Heading" value={content.contact_form_heading} onChange={v => set('contact_form_heading', v)} />
+      </Card>
+
+      <Card title="📞 Contact Details">
+        <Field label="Telegram / Phone" value={content.contact_telegram} onChange={v => set('contact_telegram', v)} hint="Shown as clickable contact — number only, e.g. 095 666 788" />
+        <Field label="Email Address" value={content.contact_email} onChange={v => set('contact_email', v)} />
+        <Field label="Location" value={content.contact_location} onChange={v => set('contact_location', v)} />
+      </Card>
+
+      <Card title="🔻 Footer" defaultOpen={false}>
+        <Field label="Tagline" value={content.footer_tagline} onChange={v => set('footer_tagline', v)} multiline rows={2} hint="Shown under the logo in the footer" />
+        <Field label="Telegram URL (full link)" value={content.footer_telegram_url} onChange={v => set('footer_telegram_url', v)} placeholder="https://t.me/+855..." />
+        <Field label="Footer Email" value={content.footer_email} onChange={v => set('footer_email', v)} />
       </Card>
     </div>
   );
@@ -355,9 +468,11 @@ function AboutTab({ content, setContent }: { content: SiteContent; setContent: (
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: 'home',     label: 'Home Page',     icon: Home },
-  { key: 'services', label: 'Services Page', icon: Briefcase },
-  { key: 'about',    label: 'About Page',    icon: User },
+  { key: 'branding', label: 'Branding',      icon: Palette   },
+  { key: 'home',     label: 'Home',          icon: Home      },
+  { key: 'services', label: 'Services',      icon: Briefcase },
+  { key: 'about',    label: 'About',         icon: User      },
+  { key: 'contact',  label: 'Contact/Footer',icon: Mail      },
 ] as const;
 
 type TabKey = typeof TABS[number]['key'];
@@ -365,7 +480,7 @@ type TabKey = typeof TABS[number]['key'];
 export default function SiteContentPage() {
   const { user } = useAuth();
   const [content, setContent] = useState<SiteContent>(DEFAULT_CONTENT);
-  const [activeTab, setActiveTab] = useState<TabKey>('home');
+  const [activeTab, setActiveTab] = useState<TabKey>('branding');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -429,13 +544,13 @@ export default function SiteContentPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="font-display text-3xl font-bold text-brand-cream">Site Content Editor</h1>
-          <p className="text-brand-muted text-sm mt-1">Edit all headings, text and copy across the site — changes go live instantly</p>
+          <p className="text-brand-muted text-sm mt-1">Edit everything across the site — site name, headings, buttons, stats, contact info, footer. Changes go live instantly.</p>
         </div>
         <SaveBtn />
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-xl p-1 mb-6 w-fit">
+      <div className="flex items-center gap-1 bg-brand-card border border-brand-border rounded-xl p-1 mb-6 flex-wrap">
         {TABS.map(tab => (
           <button
             key={tab.key}
@@ -454,9 +569,11 @@ export default function SiteContentPage() {
       </div>
 
       {/* Tab panels */}
+      {activeTab === 'branding' && <BrandingTab content={content} setContent={setContent} />}
       {activeTab === 'home'     && <HomeTab     content={content} setContent={setContent} />}
       {activeTab === 'services' && <ServicesTab content={content} setContent={setContent} />}
       {activeTab === 'about'    && <AboutTab    content={content} setContent={setContent} />}
+      {activeTab === 'contact'  && <ContactTab  content={content} setContent={setContent} />}
 
       {/* Sticky save */}
       <div className="fixed bottom-6 right-8 z-50">
