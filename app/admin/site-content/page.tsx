@@ -92,7 +92,7 @@ function BrandingTab({ content, setContent }: { content: SiteContent; setContent
     <div className="space-y-4">
 
       <Card title="🏷️ Site Name & Logo" badge="navbar">
-        <p className="text-brand-muted text-xs">The logo renders as: <span className="text-brand-cream font-mono">[Site Name].[TLD]</span> — e.g. SOPHEAP.AI</p>
+        <p className="text-brand-muted text-xs">The logo renders as: <span className="text-brand-cream font-mono">[Site Name] [TLD]</span> — e.g. SOPHEAP.AI</p>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Site Name (left part)" value={content.site_name} onChange={v => set('site_name', v)} hint="e.g. SOPHEAP" />
           <Field label="TLD (gold part after dot)" value={content.site_tld} onChange={v => set('site_tld', v)} hint="e.g. AI" />
