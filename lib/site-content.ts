@@ -6,28 +6,33 @@ export interface Testimonial   { quote: string; name: string; org: string; }
 export interface Credential    { year: string; title: string; desc: string; }
 export interface Company       { name: string; desc: string; }
 export interface HeroStat      { value: string; label: string; }
+export interface FooterLink    { label: string; href: string; }
 
 export interface SiteContent {
   // ── BRANDING & NAVBAR ──────────────────────────────────────────────────────
-  site_name:             string;
-  site_tld:              string;
-  nav_blog:              string;
-  nav_services:          string;
-  nav_about:             string;
-  nav_contact:           string;
-  nav_login:             string;
+  site_name:    string;
+  site_tld:     string;
+  nav_blog:     string;
+  nav_services: string;
+  nav_about:    string;
+  nav_contact:  string;
+  nav_login:    string;
+
+  // ── SEO / BROWSER TAB ──────────────────────────────────────────────────────
+  meta_title:       string;
+  meta_description: string;
 
   // ── HOME HERO ──────────────────────────────────────────────────────────────
-  home_hero_badge:        string;
-  home_hero_title:        string; home_hero_title_kh:  string;
-  home_hero_sub:          string; home_hero_sub_kh:    string;
-  home_hero_cta1:         string; home_hero_cta1_kh:   string;
-  home_hero_cta2:         string; home_hero_cta2_kh:   string;
-  home_hero_cta1_href:    string;
-  home_hero_cta2_href:    string;
-  home_hero_stats:        HeroStat[];
-  home_hero_photo_name:   string;
-  home_hero_photo_title:  string;
+  home_hero_badge:       string;
+  home_hero_title:       string; home_hero_title_kh:  string;
+  home_hero_sub:         string; home_hero_sub_kh:    string;
+  home_hero_cta1:        string; home_hero_cta1_kh:   string;
+  home_hero_cta2:        string; home_hero_cta2_kh:   string;
+  home_hero_cta1_href:   string;
+  home_hero_cta2_href:   string;
+  home_hero_stats:       HeroStat[];
+  home_hero_photo_name:  string;
+  home_hero_photo_title: string;
 
   // ── HOME SERVICES TEASER ───────────────────────────────────────────────────
   home_services_eyebrow:   string;
@@ -37,14 +42,14 @@ export interface SiteContent {
   home_services_items:     ServiceTeaser[];
 
   // ── HOME ABOUT TEASER ──────────────────────────────────────────────────────
-  home_about_eyebrow:      string;
-  home_about_heading:      string;
-  home_about_highlight:    string;
-  home_about_para1:        string;
-  home_about_para2:        string;
-  home_about_cta:          string;
-  home_about_badge_label:  string;
-  home_about_badge_sub:    string;
+  home_about_eyebrow:     string;
+  home_about_heading:     string;
+  home_about_highlight:   string;
+  home_about_para1:       string;
+  home_about_para2:       string;
+  home_about_cta:         string;
+  home_about_badge_label: string;
+  home_about_badge_sub:   string;
 
   // ── HOME SUBSCRIBE BANNER ──────────────────────────────────────────────────
   home_subscribe_eyebrow:       string;
@@ -82,9 +87,15 @@ export interface SiteContent {
   contact_form_heading: string;
 
   // ── FOOTER ─────────────────────────────────────────────────────────────────
-  footer_tagline:      string;
-  footer_telegram_url: string;
-  footer_email:        string;
+  footer_tagline:           string;
+  footer_telegram_url:      string;
+  footer_email:             string;
+  footer_nav_heading:       string;
+  footer_nav_links:         FooterLink[];
+  footer_writing_heading:   string;
+  footer_writing_links:     FooterLink[];
+  footer_copyright_name:    string;
+  footer_built_text:        string;
 }
 
 // ─── DEFAULTS ─────────────────────────────────────────────────────────────────
@@ -98,17 +109,20 @@ export const DEFAULT_CONTENT: SiteContent = {
   nav_contact:  'Contact',
   nav_login:    'Login',
 
-  home_hero_badge:    'AI Strategist · Trainer · Entrepreneur',
-  home_hero_title:    "AI Thinking for Cambodia's Future",
-  home_hero_title_kh: 'ការគិតពី AI សម្រាប់អនាគតរបស់កម្ពុជា',
-  home_hero_sub:      'Weekly insights. Strategic depth. Local clarity.',
-  home_hero_sub_kh:   'ការយល់ដឹងប្រចាំសប្ដាហ៍។ ចំណេះដឹងយុទ្ធសាស្ត្រ។ ភាពច្បាស់លាស់ក្នុងស្រុក។',
-  home_hero_cta1:     'Read My Latest Writing',
-  home_hero_cta1_kh:  'អានអត្ថបទចុងក្រោយ',
-  home_hero_cta2:     'Work With Me',
-  home_hero_cta2_kh:  'ធ្វើការជាមួយខ្ញុំ',
-  home_hero_cta1_href: '/blog',
-  home_hero_cta2_href: '/services',
+  meta_title:       "SOPHEAP.AI — AI Thinking for Cambodia's Future",
+  meta_description: 'HIN Sopheap — AI strategist, trainer, and entrepreneur in Cambodia. Weekly insights on AI through a Cambodian lens.',
+
+  home_hero_badge:       'AI Strategist · Trainer · Entrepreneur',
+  home_hero_title:       "AI Thinking for Cambodia's Future",
+  home_hero_title_kh:    'ការគិតពី AI សម្រាប់អនាគតរបស់កម្ពុជា',
+  home_hero_sub:         'Weekly insights. Strategic depth. Local clarity.',
+  home_hero_sub_kh:      'ការយល់ដឹងប្រចាំសប្ដាហ៍។ ចំណេះដឹងយុទ្ធសាស្ត្រ។ ភាពច្បាស់លាស់ក្នុងស្រុក។',
+  home_hero_cta1:        'Read My Latest Writing',
+  home_hero_cta1_kh:     'អានអត្ថបទចុងក្រោយ',
+  home_hero_cta2:        'Work With Me',
+  home_hero_cta2_kh:     'ធ្វើការជាមួយខ្ញុំ',
+  home_hero_cta1_href:   '/blog',
+  home_hero_cta2_href:   '/services',
   home_hero_stats: [
     { value: '23+',   label: 'Years of Leadership' },
     { value: '1000s', label: 'People Trained' },
@@ -156,14 +170,14 @@ export const DEFAULT_CONTENT: SiteContent = {
   services_hero_subtext:   'I work with organisations, governments, and leaders across Cambodia and ASEAN who are ready to move from talking about AI to building with it.',
   services_items: [
     { title: 'AI Capability Development',    desc: 'Corporate AI training programmes, executive workshops, workforce transformation, train-the-trainer, and university partnerships.', features: ['Custom curriculum design','Hands-on AI workshops','Certificate programmes','Leadership AI immersions','Train-the-trainer','English & Khmer delivery'] },
-    { title: 'AI Agents & Solutions',        desc: 'End-to-end design and deployment of AI agents, chatbots (Telegram, Web, WhatsApp), document intelligence systems, agentic workflow automation, and custom LLM integrations.', features: ['Telegram AI bots','Web AI agents','Document intelligence','Custom LLM pipelines','Agentic workflow automation','WhatsApp AI integration'] },
+    { title: 'AI Agents & Solutions',        desc: 'End-to-end design and deployment of AI agents, chatbots (Telegram, Web, WhatsApp), document intelligence systems, agentic workflow automation.', features: ['Telegram AI bots','Web AI agents','Document intelligence','Custom LLM pipelines','Agentic workflow automation','WhatsApp AI integration'] },
     { title: 'AI Strategy Consulting',       desc: 'Using the proprietary PRISM Framework and Recursive Strategy Engine (RSE), I deliver AI readiness assessments, strategic roadmaps, governance design, and fractional AI advisory.', features: ['AI readiness audit','Strategic roadmap','PRISM Framework','Fractional AI advisory','Governance design','Board-level AI briefings'] },
-    { title: 'Speaking & Thought Leadership',desc: "Keynotes and panel sessions on AI strategy, Cambodia's AI journey, ethical AI in ASEAN, and the future of work. Available in English and Khmer.", features: ['Conference keynotes','Executive panel facilitation','University lectures','Media appearances','AI future workshops','English & Khmer'] },
+    { title: 'Speaking & Thought Leadership',desc: "Keynotes and panel sessions on AI strategy, Cambodia's AI journey, ethical AI in ASEAN, and the future of work.", features: ['Conference keynotes','Executive panel facilitation','University lectures','Media appearances','AI future workshops','English & Khmer'] },
   ],
   services_testimonials: [
-    { quote: 'Sopheap brought AI from abstract concept to real business tool for our entire executive team.', name: 'Corporate Training Client', org: 'Cambodia'    },
+    { quote: 'Sopheap brought AI from abstract concept to real business tool for our entire executive team.', name: 'Corporate Training Client', org: 'Cambodia' },
     { quote: 'The PRISM Framework gave us clarity on our AI roadmap like nothing else had. Transformative.',  name: 'Strategy Consulting Client', org: 'Phnom Penh' },
-    { quote: "His keynote at our conference sparked genuine action, not just conversation. That's rare.",      name: 'Conference Organizer',       org: 'ASEAN'      },
+    { quote: "His keynote at our conference sparked genuine action, not just conversation. That's rare.",      name: 'Conference Organizer', org: 'ASEAN' },
   ],
   services_contact_eyebrow: 'Get in Touch',
   services_contact_heading: 'Work With Sopheap',
@@ -199,9 +213,24 @@ export const DEFAULT_CONTENT: SiteContent = {
   contact_location:     'Phnom Penh, Cambodia',
   contact_form_heading: 'Send a Message',
 
-  footer_tagline:      "AI Thinking for Cambodia's Future. Weekly insights, strategic depth, and local clarity.",
-  footer_telegram_url: 'https://t.me/+85595666788',
-  footer_email:        'sopheap.hin@gmail.com',
+  footer_tagline:        "AI Thinking for Cambodia's Future. Weekly insights, strategic depth, and local clarity.",
+  footer_telegram_url:   'https://t.me/+85595666788',
+  footer_email:          'sopheap.hin@gmail.com',
+  footer_nav_heading:    'Navigate',
+  footer_nav_links: [
+    { label: 'Blog',     href: '/blog'     },
+    { label: 'Services', href: '/services' },
+    { label: 'About',    href: '/about'    },
+    { label: 'Contact',  href: '/contact'  },
+  ],
+  footer_writing_heading: 'Writing',
+  footer_writing_links: [
+    { label: 'AI Frontier Brief',  href: '/blog?category=ai-frontier-brief'  },
+    { label: 'The Long View',      href: '/blog?category=the-long-view'      },
+    { label: 'Thought Leadership', href: '/blog?category=thought-leadership' },
+  ],
+  footer_copyright_name: 'HIN Sopheap',
+  footer_built_text:     'Built in Phnom Penh, Cambodia',
 };
 
 export function mergeSiteContent(fetched: Partial<SiteContent> | null): SiteContent {
@@ -216,6 +245,7 @@ export function mergeSiteContent(fetched: Partial<SiteContent> | null): SiteCont
     about_bio:             fetched.about_bio             ?? DEFAULT_CONTENT.about_bio,
     about_credentials:     fetched.about_credentials     ?? DEFAULT_CONTENT.about_credentials,
     about_companies:       fetched.about_companies       ?? DEFAULT_CONTENT.about_companies,
+    footer_nav_links:      fetched.footer_nav_links      ?? DEFAULT_CONTENT.footer_nav_links,
+    footer_writing_links:  fetched.footer_writing_links  ?? DEFAULT_CONTENT.footer_writing_links,
   };
-};
-
+}
