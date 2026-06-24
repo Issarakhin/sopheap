@@ -71,6 +71,10 @@ export default function SopheaWidget() {
 
       const data = await res.json();
 
+      if (!res.ok || !data.content) {
+        throw new Error(data.error || `Chat request failed (${res.status})`);
+      }
+
       // Parse article recommendations from response
       const recRegex = /<recommend>(.*?)<\/recommend>/gs;
       let cleanContent = data.content;
@@ -109,6 +113,7 @@ export default function SopheaWidget() {
         localStorage.setItem(`chat_${sessionId}`, JSON.stringify(finalMessages));
       }
     } catch (err) {
+      console.error('Sophea chat error:', err);
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: "I'm having a moment of difficulty. Please try again, or reach Sopheap directly on Telegram at 095 666 788.",

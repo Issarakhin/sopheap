@@ -28,6 +28,11 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, userId, sessionId, lang, articles } = await req.json();
 
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('Chat API error: OPENAI_API_KEY is not set');
+      return NextResponse.json({ error: 'OPENAI_API_KEY is not configured on the server.' }, { status: 500 });
+    }
+
     // Load system prompt from Firebase with fallback
     let systemPrompt = DEFAULT_SYSTEM_PROMPT;
     try {
@@ -68,7 +73,12 @@ export async function POST(req: NextRequest) {
     const content = completion.choices[0].message.content || '';
     return NextResponse.json({ content, sessionId });
   } catch (err: any) {
-    console.error('Chat API error:', err);
-    return NextResponse.json({ error: err.message || 'Internal error' }, { status: 500 });
+    const status = err?.status || err?.response?.status;
+    const apiMessage = err?.error?.message || err?.response?.data?.error?.message;
+    console.error('Chat API error:', status, err?.code, apiMessage || err.message);
+    return NextResponse.json(
+      { error: apiMessage || err.message || 'Internal error' },
+      { status: status && status >= 400 && status < 600 ? status : 500 }
+    );
   }
 }
