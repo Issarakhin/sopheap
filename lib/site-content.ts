@@ -214,7 +214,7 @@ export const DEFAULT_CONTENT: SiteContent = {
   contact_form_heading: 'Send a Message',
 
   footer_tagline:        "AI Thinking for Cambodia's Future. Weekly insights, strategic depth, and local clarity.",
-  footer_telegram_url:   'https://t.me/+85595666788',
+  footer_telegram_url:   'https://t.me/@sopheaphin',
   footer_email:          'sopheap.hin@gmail.com',
   footer_nav_heading:    'Navigate',
   footer_nav_links: [
